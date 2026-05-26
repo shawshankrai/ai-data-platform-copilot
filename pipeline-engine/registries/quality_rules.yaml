@@ -1,0 +1,37 @@
+rules:
+  not_null:
+    description: "Column should not contain null values"
+    sql_template: |
+      -- Quality check: {{ column }} should not be null
+      SELECT
+        '{{ column }}' AS column_name,
+        'not_null' AS rule_name,
+        COUNT(*) AS failed_count
+      FROM {{ table_name }}
+      WHERE {{ column }} IS NULL;
+
+  valid_email:
+    description: "Column should match email format"
+    sql_template: |
+      -- Quality check: {{ column }} should be a valid email
+      SELECT
+        '{{ column }}' AS column_name,
+        'valid_email' AS rule_name,
+        COUNT(*) AS failed_count
+      FROM {{ table_name }}
+      WHERE {{ column }} IS NOT NULL
+        AND NOT REGEXP_CONTAINS(
+          {{ column }},
+          r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+        );
+  positive_number:
+    description: "Column value should be greater than zero"
+    sql_template: |
+      -- Quality check: {{ column }} should be positive
+      SELECT
+        '{{ column }}' AS column_name,
+        'positive_number' AS rule_name,
+        COUNT(*) AS failed_count
+      FROM {{ table_name }}
+      WHERE {{ column }} IS NOT NULL
+        AND {{ column }} <= 0;
