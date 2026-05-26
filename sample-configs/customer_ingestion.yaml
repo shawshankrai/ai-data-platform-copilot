@@ -24,6 +24,9 @@ schema:
   - name: created_at
     type: TIMESTAMP
     mode: NULLABLE
+  - name: total_orders
+    type: INTEGER
+    mode: NULLABLE
 
 schedule: "0 2 * * *"
 
@@ -32,6 +35,8 @@ quality_rules:
     rule: not_null
   - column: email
     rule: valid_email
+  - column: total_orders
+    rule: positive_number
 
 generation:
   airflow_mode: python_dag
