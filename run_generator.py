@@ -1,6 +1,7 @@
 import yaml
 import os
 import sys
+import glob
 
 sys.path.append("pipeline-engine")
 
@@ -12,6 +13,7 @@ from generators.quality_sql_generator import generate_quality_sql
 
 
 DEFAULT_CONFIG_PATH = "sample-configs/customer_ingestion.yaml"
+CONFIG_DIR = "sample-configs"
 OUTPUT_DIR = "generated"
 
 
@@ -32,9 +34,7 @@ def write_file(file_path: str, content: str) -> None:
         file.write(content)
 
 
-def main():
-    config_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CONFIG_PATH
-
+def generate_for_config(config_path: str) -> None:
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
 
@@ -49,7 +49,7 @@ def main():
     write_file(output_paths["validation_report"], report)
 
     if errors:
-        print("Config validation failed. Report generated:")
+        print(f"Config validation failed for {config_path}. Report generated:")
         print(f"- {output_paths['validation_report']}")
 
         for error in errors:
@@ -65,13 +65,28 @@ def main():
     write_file(output_paths["dag"], dag)
     write_file(output_paths["quality_sql"], quality_sql)
 
-    print("Generated files:")
+    print(f"Generated artifacts for pipeline: {pipeline_name}")
     print(f"- {output_paths['ddl']}")
     print(f"- {output_paths['dag']}")
     print(f"- {output_paths['quality_sql']}")
     print(f"- {output_paths['validation_report']}")
-    print("Done.")
 
+def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "--all":
+        config_paths = sorted(glob.glob(f"{CONFIG_DIR}/*.yaml"))
+
+        if not config_paths:
+            print(f"No config files found in {CONFIG_DIR}")
+            return
+
+        for config_path in config_paths:
+            generate_for_config(config_path)
+
+        print("Bulk generation completed.")
+        return
+
+    config_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CONFIG_PATH
+    generate_for_config(config_path)
 
 if __name__ == "__main__":
     main()
