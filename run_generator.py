@@ -15,22 +15,37 @@ CONFIG_PATH = "sample-configs/customer_ingestion.yaml"
 OUTPUT_DIR = "generated"
 
 
+def build_output_paths(pipeline_name: str) -> dict:
+    return {
+        "ddl": f"{OUTPUT_DIR}/{pipeline_name}.sql",
+        "dag": f"{OUTPUT_DIR}/{pipeline_name}_dag.py",
+        "quality_sql": f"{OUTPUT_DIR}/{pipeline_name}_quality_checks.sql",
+        "validation_report": f"{OUTPUT_DIR}/{pipeline_name}_validation_report.md",
+    }
+
+
+def write_file(file_path: str, content: str) -> None:
+    with open(file_path, "w") as file:
+        file.write(content)
+
+
 def main():
     with open(CONFIG_PATH, "r") as file:
         config = yaml.safe_load(file)
+
+    pipeline_name = config.get("pipeline_name", "unknown_pipeline")
+    output_paths = build_output_paths(pipeline_name)
 
     errors = validate_pipeline_config(config)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     report = generate_validation_report(config, errors)
-
-    with open(f"{OUTPUT_DIR}/customer_ingestion_validation_report.md", "w") as file:
-        file.write(report)
+    write_file(output_paths["validation_report"], report)
 
     if errors:
         print("Config validation failed. Report generated:")
-        print("- generated/customer_ingestion_validation_report.md")
+        print(f"- {output_paths['validation_report']}")
 
         for error in errors:
             print(f"- {error}")
@@ -41,20 +56,15 @@ def main():
     dag = generate_airflow_dag(config)
     quality_sql = generate_quality_sql(config)
 
-    with open(f"{OUTPUT_DIR}/customer_ingestion.sql", "w") as file:
-        file.write(ddl)
-
-    with open(f"{OUTPUT_DIR}/customer_ingestion_dag.py", "w") as file:
-        file.write(dag)
-
-    with open(f"{OUTPUT_DIR}/customer_ingestion_quality_checks.sql", "w") as file:
-        file.write(quality_sql)
+    write_file(output_paths["ddl"], ddl)
+    write_file(output_paths["dag"], dag)
+    write_file(output_paths["quality_sql"], quality_sql)
 
     print("Generated files:")
-    print("- generated/customer_ingestion.sql")
-    print("- generated/customer_ingestion_dag.py")
-    print("- generated/customer_ingestion_quality_checks.sql")
-    print("- generated/customer_ingestion_validation_report.md")
+    print(f"- {output_paths['ddl']}")
+    print(f"- {output_paths['dag']}")
+    print(f"- {output_paths['quality_sql']}")
+    print(f"- {output_paths['validation_report']}")
     print("Done.")
 
 
