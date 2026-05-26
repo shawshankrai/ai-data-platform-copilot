@@ -1,0 +1,28 @@
+from airflow import DAG
+from airflow.operators.empty import EmptyOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
+from datetime import datetime
+
+with DAG(
+    dag_id="{{ pipeline_name }}",
+    start_date=datetime(2024, 1, 1),
+    schedule="{{ schedule }}",
+    catchup=False,
+    tags=["generated", "data-platform-copilot"],
+) as dag:
+
+    start = EmptyOperator(task_id="start")
+
+    load_to_bigquery = GCSToBigQueryOperator(
+        task_id="load_to_bigquery",
+        bucket="{{ bucket }}",
+        source_objects=["{{ source_object_pattern }}"],
+        destination_project_dataset_table="{{ destination_table }}",
+        source_format="{{ source_format }}",
+        autodetect=False,
+        write_disposition="WRITE_APPEND",
+    )
+
+    end = EmptyOperator(task_id="end")
+
+    start >> load_to_bigquery >> end
