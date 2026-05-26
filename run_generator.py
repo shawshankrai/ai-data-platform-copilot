@@ -11,7 +11,7 @@ from generators.validation_report_generator import generate_validation_report
 from generators.quality_sql_generator import generate_quality_sql
 
 
-CONFIG_PATH = "sample-configs/customer_ingestion.yaml"
+DEFAULT_CONFIG_PATH = "sample-configs/customer_ingestion.yaml"
 OUTPUT_DIR = "generated"
 
 
@@ -30,7 +30,9 @@ def write_file(file_path: str, content: str) -> None:
 
 
 def main():
-    with open(CONFIG_PATH, "r") as file:
+    config_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CONFIG_PATH
+
+    with open(config_path, "r") as file:
         config = yaml.safe_load(file)
 
     pipeline_name = config.get("pipeline_name", "unknown_pipeline")
