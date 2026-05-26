@@ -7,6 +7,7 @@ sys.path.append("pipeline-engine")
 from validators.config_validator import validate_pipeline_config
 from generators.ddl_generator import generate_bigquery_ddl
 from generators.dag_generator import generate_airflow_dag
+from generators.validation_report_generator import generate_validation_report
 
 
 CONFIG_PATH = "sample-configs/customer_ingestion.yaml"
@@ -19,13 +20,21 @@ def main():
 
     errors = validate_pipeline_config(config)
 
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    report = generate_validation_report(config, errors)
+
+    with open(f"{OUTPUT_DIR}/customer_ingestion_validation_report.md", "w") as file:
+        file.write(report)
+
     if errors:
-        print("Config validation failed:")
+        print("Config validation failed. Report generated:")
+        print("- generated/customer_ingestion_validation_report.md")
+
         for error in errors:
             print(f"- {error}")
-        return
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+        return
 
     ddl = generate_bigquery_ddl(config)
     dag = generate_airflow_dag(config)
@@ -39,6 +48,7 @@ def main():
     print("Generated files:")
     print("- generated/customer_ingestion.sql")
     print("- generated/customer_ingestion_dag.py")
+    print("- generated/customer_ingestion_validation_report.md")
     print("Done.")
 
 
