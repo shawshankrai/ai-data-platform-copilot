@@ -1,0 +1,34 @@
+pipeline_name: customer_ingestion
+
+source:
+  type: gcs
+  path: gs://demo-bucket/input/customers/
+  format: csv
+
+target:
+  type: bigquery
+  project: demo-project
+  dataset: bronze
+  table: customers_raw
+
+schema:
+  - name: customer_id
+    type: STRING
+    mode: REQUIRED
+  - name: name
+    type: STRING
+    mode: NULLABLE
+  - name: email
+    type: STRING
+    mode: NULLABLE
+  - name: created_at
+    type: TIMESTAMP
+    mode: NULLABLE
+
+schedule: "0 2 * * *"
+
+quality_rules:
+  - column: customer_id
+    rule: not_null
+  - column: email
+    rule: valid_email
