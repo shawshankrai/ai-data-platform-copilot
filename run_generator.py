@@ -8,6 +8,7 @@ from validators.config_validator import validate_pipeline_config
 from generators.ddl_generator import generate_bigquery_ddl
 from generators.dag_generator import generate_airflow_dag
 from generators.validation_report_generator import generate_validation_report
+from generators.quality_sql_generator import generate_quality_sql
 
 
 CONFIG_PATH = "sample-configs/customer_ingestion.yaml"
@@ -38,6 +39,7 @@ def main():
 
     ddl = generate_bigquery_ddl(config)
     dag = generate_airflow_dag(config)
+    quality_sql = generate_quality_sql(config)
 
     with open(f"{OUTPUT_DIR}/customer_ingestion.sql", "w") as file:
         file.write(ddl)
@@ -45,9 +47,13 @@ def main():
     with open(f"{OUTPUT_DIR}/customer_ingestion_dag.py", "w") as file:
         file.write(dag)
 
+    with open(f"{OUTPUT_DIR}/customer_ingestion_quality_checks.sql", "w") as file:
+        file.write(quality_sql)
+
     print("Generated files:")
     print("- generated/customer_ingestion.sql")
     print("- generated/customer_ingestion_dag.py")
+    print("- generated/customer_ingestion_quality_checks.sql")
     print("- generated/customer_ingestion_validation_report.md")
     print("Done.")
 
