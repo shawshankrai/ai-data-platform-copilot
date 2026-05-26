@@ -16,11 +16,14 @@ OUTPUT_DIR = "generated"
 
 
 def build_output_paths(pipeline_name: str) -> dict:
+    pipeline_output_dir = f"{OUTPUT_DIR}/{pipeline_name}"
+
     return {
-        "ddl": f"{OUTPUT_DIR}/{pipeline_name}.sql",
-        "dag": f"{OUTPUT_DIR}/{pipeline_name}_dag.py",
-        "quality_sql": f"{OUTPUT_DIR}/{pipeline_name}_quality_checks.sql",
-        "validation_report": f"{OUTPUT_DIR}/{pipeline_name}_validation_report.md",
+        "output_dir": pipeline_output_dir,
+        "ddl": f"{pipeline_output_dir}/ddl.sql",
+        "dag": f"{pipeline_output_dir}/dag.py",
+        "quality_sql": f"{pipeline_output_dir}/quality_checks.sql",
+        "validation_report": f"{pipeline_output_dir}/validation_report.md",
     }
 
 
@@ -40,7 +43,7 @@ def main():
 
     errors = validate_pipeline_config(config)
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(output_paths["output_dir"], exist_ok=True)
 
     report = generate_validation_report(config, errors)
     write_file(output_paths["validation_report"], report)

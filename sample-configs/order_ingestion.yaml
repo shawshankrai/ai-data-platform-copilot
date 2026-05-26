@@ -1,0 +1,49 @@
+pipeline_name: order_ingestion
+
+source:
+  type: gcs
+  path: gs://demo-bucket/input/orders/
+  format: csv
+
+target:
+  type: bigquery
+  project: demo-project
+  dataset: bronze
+  table: orders_raw
+  partition_by:
+    column: order_created_at
+    type: DAY
+  cluster_by:
+    - order_id
+    - customer_id
+
+schema:
+  - name: order_id
+    type: STRING
+    mode: REQUIRED
+  - name: customer_id
+    type: STRING
+    mode: REQUIRED
+  - name: order_status
+    type: STRING
+    mode: NULLABLE
+  - name: order_amount
+    type: NUMERIC
+    mode: NULLABLE
+  - name: order_created_at
+    type: TIMESTAMP
+    mode: NULLABLE
+
+schedule: "0 3 * * *"
+
+quality_rules:
+  - column: order_id
+    rule: not_null
+  - column: customer_id
+    rule: not_null
+  - column: order_amount
+    rule: positive_number
+
+generation:
+  airflow_mode: python_dag
+  bigquery_mode: ddl_file
