@@ -10,6 +10,12 @@ target:
   project: demo-project
   dataset: bronze
   table: customers_raw
+  partition_by:
+    column: created_at
+    type: DAY
+  cluster_by:
+    - customer_id
+    - email
 
 schema:
   - name: customer_id
